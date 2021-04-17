@@ -5,15 +5,15 @@
 #include <cstring>
 
 DaisyAnalyzerSettings::DaisyAnalyzerSettings()
-:	mServoChannel( UNDEFINED_CHANNEL ),
-	mConsoleChannel( UNDEFINED_CHANNEL ),
-	mClockChannel( UNDEFINED_CHANNEL ),
-	mEnableChannel( UNDEFINED_CHANNEL ),
-	mShiftOrder( AnalyzerEnums::MsbFirst ),
-	mBitsPerTransfer( 8 ),
-	mClockInactiveState( BIT_LOW ),
-	mDataValidEdge( AnalyzerEnums::LeadingEdge ), 
-	mEnableActiveState( BIT_LOW )
+: mServoChannel( UNDEFINED_CHANNEL ),
+  mConsoleChannel( UNDEFINED_CHANNEL ),
+  mShiftClockChannel(UNDEFINED_CHANNEL ),
+  mLoadClockChannel(UNDEFINED_CHANNEL ),
+  mShiftOrder( AnalyzerEnums::MsbFirst ),
+  mBitsPerTransfer( 8 ),
+  mClockInactiveState( BIT_LOW ),
+  mDataValidEdge( AnalyzerEnums::LeadingEdge ),
+  mEnableActiveState( BIT_LOW )
 {
 	mServoChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
 	mServoChannelInterface->SetTitleAndTooltip( "Servo", "Servo Bit Stream" );
@@ -25,14 +25,14 @@ DaisyAnalyzerSettings::DaisyAnalyzerSettings()
 	mConsoleChannelInterface->SetChannel( mConsoleChannel );
 	mConsoleChannelInterface->SetSelectionOfNoneIsAllowed( true );
 
-	mClockChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mClockChannelInterface->SetTitleAndTooltip( "Clock", "Clock (CLK)" );
-	mClockChannelInterface->SetChannel( mClockChannel );
+	mShiftClockChannelInterface.reset(new AnalyzerSettingInterfaceChannel() );
+	mShiftClockChannelInterface->SetTitleAndTooltip("Shift", "Shift Clock" );
+	mShiftClockChannelInterface->SetChannel(mShiftClockChannel );
 
-	mEnableChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mEnableChannelInterface->SetTitleAndTooltip( "Enable", "Enable (SS, Slave Select)" );
-	mEnableChannelInterface->SetChannel( mEnableChannel );
-	mEnableChannelInterface->SetSelectionOfNoneIsAllowed( true );
+	mLoadClockChannelInterface.reset(new AnalyzerSettingInterfaceChannel() );
+	mLoadClockChannelInterface->SetTitleAndTooltip("Load", "Load Clock" );
+	mLoadClockChannelInterface->SetChannel(mLoadClockChannel );
+	mLoadClockChannelInterface->SetSelectionOfNoneIsAllowed(true );
 
 	mShiftOrderInterface.reset( new AnalyzerSettingInterfaceNumberList() );
 	mShiftOrderInterface->SetTitleAndTooltip( "Significant Bit", "" );
@@ -76,8 +76,8 @@ DaisyAnalyzerSettings::DaisyAnalyzerSettings()
 
 	AddInterface( mServoChannelInterface.get() );
 	AddInterface( mConsoleChannelInterface.get() );
-	AddInterface( mClockChannelInterface.get() );
-	AddInterface( mEnableChannelInterface.get() );
+	AddInterface(mShiftClockChannelInterface.get() );
+	AddInterface(mLoadClockChannelInterface.get() );
 	AddInterface( mShiftOrderInterface.get() );
 	AddInterface( mBitsPerTransferInterface.get() );
 	AddInterface( mClockInactiveStateInterface.get() );
@@ -93,8 +93,8 @@ DaisyAnalyzerSettings::DaisyAnalyzerSettings()
 	ClearChannels();
 	AddChannel( mServoChannel, "Servo", false );
 	AddChannel( mConsoleChannel, "Console", false );
-	AddChannel( mClockChannel, "CLOCK", false );
-	AddChannel( mEnableChannel, "ENABLE", false );
+	AddChannel(mShiftClockChannel, "CLOCK", false );
+	AddChannel(mLoadClockChannel, "ENABLE", false );
 }
 
 DaisyAnalyzerSettings::~DaisyAnalyzerSettings()
@@ -105,8 +105,8 @@ bool DaisyAnalyzerSettings::SetSettingsFromInterfaces()
 {
 	Channel mosi = mServoChannelInterface->GetChannel();
 	Channel miso = mConsoleChannelInterface->GetChannel();
-	Channel clock = mClockChannelInterface->GetChannel();
-	Channel enable = mEnableChannelInterface->GetChannel();
+	Channel clock = mShiftClockChannelInterface->GetChannel();
+	Channel enable = mLoadClockChannelInterface->GetChannel();
 
 	std::vector<Channel> channels;
 	channels.push_back( mosi );
@@ -128,8 +128,8 @@ bool DaisyAnalyzerSettings::SetSettingsFromInterfaces()
 
 	mServoChannel = mServoChannelInterface->GetChannel();
 	mConsoleChannel = mConsoleChannelInterface->GetChannel();
-	mClockChannel = mClockChannelInterface->GetChannel();
-	mEnableChannel = mEnableChannelInterface->GetChannel();
+  mShiftClockChannel = mShiftClockChannelInterface->GetChannel();
+  mLoadClockChannel = mLoadClockChannelInterface->GetChannel();
 
 	mShiftOrder =			(AnalyzerEnums::ShiftOrder) U32( mShiftOrderInterface->GetNumber() );
 	mBitsPerTransfer =		U32( mBitsPerTransferInterface->GetNumber() );
@@ -140,8 +140,8 @@ bool DaisyAnalyzerSettings::SetSettingsFromInterfaces()
 	ClearChannels();
 	AddChannel( mServoChannel, "Servo", mServoChannel != UNDEFINED_CHANNEL );
 	AddChannel( mConsoleChannel, "Console", mConsoleChannel != UNDEFINED_CHANNEL );
-	AddChannel( mClockChannel, "CLOCK", mClockChannel != UNDEFINED_CHANNEL );
-	AddChannel( mEnableChannel, "ENABLE", mEnableChannel != UNDEFINED_CHANNEL );
+	AddChannel(mShiftClockChannel, "CLOCK", mShiftClockChannel != UNDEFINED_CHANNEL );
+	AddChannel(mLoadClockChannel, "ENABLE", mLoadClockChannel != UNDEFINED_CHANNEL );
 
 	return true;
 }
@@ -158,8 +158,8 @@ void DaisyAnalyzerSettings::LoadSettings(const char* settings )
 
 	text_archive >>  mServoChannel;
 	text_archive >>  mConsoleChannel;
-	text_archive >>  mClockChannel;
-	text_archive >>  mEnableChannel;
+	text_archive >> mShiftClockChannel;
+	text_archive >> mLoadClockChannel;
 	text_archive >>  *(U32*)&mShiftOrder;
 	text_archive >>  mBitsPerTransfer;
 	text_archive >>  *(U32*)&mClockInactiveState;
@@ -173,8 +173,8 @@ void DaisyAnalyzerSettings::LoadSettings(const char* settings )
 	ClearChannels();
 	AddChannel( mServoChannel, "Servo", mServoChannel != UNDEFINED_CHANNEL );
 	AddChannel( mConsoleChannel, "Console", mConsoleChannel != UNDEFINED_CHANNEL );
-	AddChannel( mClockChannel, "CLOCK", mClockChannel != UNDEFINED_CHANNEL );
-	AddChannel( mEnableChannel, "ENABLE", mEnableChannel != UNDEFINED_CHANNEL );
+	AddChannel(mShiftClockChannel, "CLOCK", mShiftClockChannel != UNDEFINED_CHANNEL );
+	AddChannel(mLoadClockChannel, "ENABLE", mLoadClockChannel != UNDEFINED_CHANNEL );
 
 	UpdateInterfacesFromSettings();
 }
@@ -186,8 +186,8 @@ const char* DaisyAnalyzerSettings::SaveSettings()
 	text_archive << "SaleaeSpiAnalyzer";
 	text_archive <<  mServoChannel;
 	text_archive <<  mConsoleChannel;
-	text_archive <<  mClockChannel;
-	text_archive <<  mEnableChannel;
+	text_archive << mShiftClockChannel;
+	text_archive << mLoadClockChannel;
 	text_archive <<  mShiftOrder;
 	text_archive <<  mBitsPerTransfer;
 	text_archive <<  mClockInactiveState;
@@ -201,8 +201,8 @@ void DaisyAnalyzerSettings::UpdateInterfacesFromSettings()
 {
 	mServoChannelInterface->SetChannel( mServoChannel );
 	mConsoleChannelInterface->SetChannel( mConsoleChannel );
-	mClockChannelInterface->SetChannel( mClockChannel );
-	mEnableChannelInterface->SetChannel( mEnableChannel );
+	mShiftClockChannelInterface->SetChannel(mShiftClockChannel );
+	mLoadClockChannelInterface->SetChannel(mLoadClockChannel );
 	mShiftOrderInterface->SetNumber( mShiftOrder );
 	mBitsPerTransferInterface->SetNumber( mBitsPerTransfer );
 	mClockInactiveStateInterface->SetNumber( mClockInactiveState );

@@ -26,10 +26,10 @@ void DaisySimulationDataGenerator::Initialize(U32 simulation_sample_rate, DaisyA
 	else
 		mServo = NULL;
 
-	mClock = mSpiSimulationChannels.Add( settings->mClockChannel, mSimulationSampleRateHz, mSettings->mClockInactiveState );
+	mClock = mSpiSimulationChannels.Add(settings->mShiftClockChannel, mSimulationSampleRateHz, mSettings->mClockInactiveState );
 
-	if( settings->mEnableChannel != UNDEFINED_CHANNEL )
-		mEnable = mSpiSimulationChannels.Add( settings->mEnableChannel, mSimulationSampleRateHz, Invert( mSettings->mEnableActiveState ) );
+	if(settings->mLoadClockChannel != UNDEFINED_CHANNEL )
+		mEnable = mSpiSimulationChannels.Add(settings->mLoadClockChannel, mSimulationSampleRateHz, Invert(mSettings->mEnableActiveState ) );
 	else
 		mEnable = NULL;
 

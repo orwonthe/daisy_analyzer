@@ -94,10 +94,10 @@ void DaisyAnalyzer::Setup()
 		mConsole = NULL;
 
 
-	mClock = GetAnalyzerChannelData( mSettings->mClockChannel );
+	mClock = GetAnalyzerChannelData( mSettings->mShiftClockChannel );
 
-	if( mSettings->mEnableChannel != UNDEFINED_CHANNEL )
-		mEnable = GetAnalyzerChannelData( mSettings->mEnableChannel );
+	if(mSettings->mLoadClockChannel != UNDEFINED_CHANNEL )
+		mEnable = GetAnalyzerChannelData( mSettings->mLoadClockChannel );
 	else
 		mEnable = NULL;
 
@@ -128,7 +128,7 @@ bool DaisyAnalyzer::IsInitialClockPolarityCorrect()
 	if( mClock->GetBitState() == mSettings->mClockInactiveState )
 		return true;
 
-	mResults->AddMarker( mCurrentSample, AnalyzerResults::ErrorSquare, mSettings->mClockChannel );
+	mResults->AddMarker( mCurrentSample, AnalyzerResults::ErrorSquare, mSettings->mShiftClockChannel );
 
 	if( mEnable != NULL )
 	{
@@ -274,7 +274,7 @@ void DaisyAnalyzer::GetWord()
 	//save the resuls:
 	U32 count = mArrowLocations.size();
 	for( U32 i=0; i<count; i++ )
-		mResults->AddMarker( mArrowLocations[i], mArrowMarker, mSettings->mClockChannel );
+		mResults->AddMarker( mArrowLocations[i], mArrowMarker, mSettings->mShiftClockChannel );
 
 	Frame result_frame;
 	result_frame.mStartingSampleInclusive = first_sample;
