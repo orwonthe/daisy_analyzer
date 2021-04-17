@@ -16,8 +16,8 @@ public:
 
 	void UpdateInterfacesFromSettings();
 	
-	Channel mMosiChannel;
-	Channel mMisoChannel;
+	Channel mServoChannel;
+	Channel mConsoleChannel;
 	Channel mClockChannel;
 	Channel mEnableChannel;
 	AnalyzerEnums::ShiftOrder mShiftOrder;
@@ -28,8 +28,8 @@ public:
 
 
 protected:
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mMosiChannelInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mMisoChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mServoChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mConsoleChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mClockChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mEnableChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mShiftOrderInterface;

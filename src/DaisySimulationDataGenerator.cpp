@@ -16,15 +16,15 @@ void DaisySimulationDataGenerator::Initialize(U32 simulation_sample_rate, DaisyA
 
 	mClockGenerator.Init( simulation_sample_rate / 10, simulation_sample_rate );
 
-	if( settings->mMisoChannel != UNDEFINED_CHANNEL )
-		mMiso = mSpiSimulationChannels.Add( settings->mMisoChannel, mSimulationSampleRateHz, BIT_LOW );
+	if( settings->mConsoleChannel != UNDEFINED_CHANNEL )
+		mConsole = mSpiSimulationChannels.Add( settings->mConsoleChannel, mSimulationSampleRateHz, BIT_LOW );
 	else
-		mMiso = NULL;
+		mConsole = NULL;
 	
-	if( settings->mMosiChannel != UNDEFINED_CHANNEL )
-		mMosi = mSpiSimulationChannels.Add( settings->mMosiChannel, mSimulationSampleRateHz, BIT_LOW );
+	if( settings->mServoChannel != UNDEFINED_CHANNEL )
+		mServo = mSpiSimulationChannels.Add( settings->mServoChannel, mSimulationSampleRateHz, BIT_LOW );
 	else
-		mMosi = NULL;
+		mServo = NULL;
 
 	mClock = mSpiSimulationChannels.Add( settings->mClockChannel, mSimulationSampleRateHz, mSettings->mClockInactiveState );
 
@@ -103,11 +103,11 @@ void DaisySimulationDataGenerator::OutputWord_CPHA0(U64 mosi_data, U64 miso_data
 	U32 count = mSettings->mBitsPerTransfer;
 	for( U32 i=0; i<count; i++ )
 	{
-		if( mMosi != NULL )
-			mMosi->TransitionIfNeeded( mosi_bits.GetNextBit() );
+		if( mServo != NULL )
+			mServo->TransitionIfNeeded( mosi_bits.GetNextBit() );
 
-		if( mMiso != NULL )
-			mMiso->TransitionIfNeeded( miso_bits.GetNextBit() );
+		if( mConsole != NULL )
+			mConsole->TransitionIfNeeded( miso_bits.GetNextBit() );
 
 		mSpiSimulationChannels.AdvanceAll( mClockGenerator.AdvanceByHalfPeriod( .5 ) );
 		mClock->Transition();  //data valid
@@ -116,11 +116,11 @@ void DaisySimulationDataGenerator::OutputWord_CPHA0(U64 mosi_data, U64 miso_data
 		mClock->Transition();  //data invalid
 	}
 
-	if( mMosi != NULL )
-		mMosi->TransitionIfNeeded( BIT_LOW );
+	if( mServo != NULL )
+		mServo->TransitionIfNeeded( BIT_LOW );
 
-	if( mMiso != NULL )
-		mMiso->TransitionIfNeeded( BIT_LOW );
+	if( mConsole != NULL )
+		mConsole->TransitionIfNeeded( BIT_LOW );
 
 	mSpiSimulationChannels.AdvanceAll( mClockGenerator.AdvanceByHalfPeriod( 2.0 ) );
 }
@@ -134,10 +134,10 @@ void DaisySimulationDataGenerator::OutputWord_CPHA1(U64 mosi_data, U64 miso_data
 	for( U32 i=0; i<count; i++ )
 	{
 		mClock->Transition();  //data invalid
-		if( mMosi != NULL )
-			mMosi->TransitionIfNeeded( mosi_bits.GetNextBit() );
-		if( mMiso != NULL )
-			mMiso->TransitionIfNeeded( miso_bits.GetNextBit() );
+		if( mServo != NULL )
+			mServo->TransitionIfNeeded( mosi_bits.GetNextBit() );
+		if( mConsole != NULL )
+			mConsole->TransitionIfNeeded( miso_bits.GetNextBit() );
 
 		mSpiSimulationChannels.AdvanceAll( mClockGenerator.AdvanceByHalfPeriod( .5 ) );
 		mClock->Transition();  //data valid
@@ -145,10 +145,10 @@ void DaisySimulationDataGenerator::OutputWord_CPHA1(U64 mosi_data, U64 miso_data
 		mSpiSimulationChannels.AdvanceAll( mClockGenerator.AdvanceByHalfPeriod( .5 ) );
 	}
 
-	if( mMosi != NULL )
-		mMosi->TransitionIfNeeded( BIT_LOW );
-	if( mMiso != NULL )
-		mMiso->TransitionIfNeeded( BIT_LOW );
+	if( mServo != NULL )
+		mServo->TransitionIfNeeded( BIT_LOW );
+	if( mConsole != NULL )
+		mConsole->TransitionIfNeeded( BIT_LOW );
 
 	mSpiSimulationChannels.AdvanceAll( mClockGenerator.AdvanceByHalfPeriod( 2.0 ) );
 }

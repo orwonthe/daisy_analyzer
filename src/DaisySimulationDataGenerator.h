@@ -28,8 +28,8 @@ protected: //SPI specific
 
 
 	SimulationChannelDescriptorGroup mSpiSimulationChannels;
-	SimulationChannelDescriptor* mMiso;
-	SimulationChannelDescriptor* mMosi;
+	SimulationChannelDescriptor* mConsole;
+	SimulationChannelDescriptor* mServo;
 	SimulationChannelDescriptor* mClock;
 	SimulationChannelDescriptor* mEnable;
 };

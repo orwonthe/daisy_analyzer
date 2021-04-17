@@ -36,8 +36,8 @@ protected:  //vars
 	bool mSimulationInitilized;
 	DaisySimulationDataGenerator mSimulationDataGenerator;
 
-	AnalyzerChannelData* mMosi; 
-	AnalyzerChannelData* mMiso;
+	AnalyzerChannelData* mServo;
+	AnalyzerChannelData* mConsole;
 	AnalyzerChannelData* mClock;
 	AnalyzerChannelData* mEnable;
 

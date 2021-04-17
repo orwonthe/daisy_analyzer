@@ -25,7 +25,7 @@ void DaisyAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel,
 
 	if( ( frame.mFlags & SPI_ERROR_FLAG ) == 0 )
 	{
-		if( channel == mSettings->mMosiChannel )
+		if( channel == mSettings->mServoChannel )
 		{
 			char number_str[128];
 			AnalyzerHelpers::GetNumberString( frame.mData1, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
@@ -60,10 +60,10 @@ void DaisyAnalyzerResults::GenerateExportFile(const char* file, DisplayBase disp
 	bool mosi_used = true;
 	bool miso_used = true;
 
-	if( mSettings->mMosiChannel == UNDEFINED_CHANNEL )
+	if( mSettings->mServoChannel == UNDEFINED_CHANNEL )
 		mosi_used = false;
 
-	if( mSettings->mMisoChannel == UNDEFINED_CHANNEL )
+	if( mSettings->mConsoleChannel == UNDEFINED_CHANNEL )
 		miso_used = false;
 
 	U64 num_frames = GetNumFrames();
@@ -113,10 +113,10 @@ void DaisyAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase
 	bool mosi_used = true;
 	bool miso_used = true;
 
-	if( mSettings->mMosiChannel == UNDEFINED_CHANNEL )
+	if( mSettings->mServoChannel == UNDEFINED_CHANNEL )
 		mosi_used = false;
 
-	if( mSettings->mMisoChannel == UNDEFINED_CHANNEL )
+	if( mSettings->mConsoleChannel == UNDEFINED_CHANNEL )
 		miso_used = false;
 
 	char mosi_str[128];

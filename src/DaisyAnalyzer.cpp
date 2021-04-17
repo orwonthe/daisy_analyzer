@@ -10,8 +10,8 @@ DaisyAnalyzer::DaisyAnalyzer()
 :	Analyzer2(),
 	mSettings( new DaisyAnalyzerSettings() ),
 	mSimulationInitilized( false ),
-	mMosi( NULL ),
-	mMiso( NULL ),
+	mServo( NULL ),
+	mConsole( NULL ),
 	mClock( NULL ),
 	mEnable( NULL )
 {	
@@ -28,10 +28,10 @@ void DaisyAnalyzer::SetupResults()
 	mResults.reset( new DaisyAnalyzerResults(this, mSettings.get() ) );
 	SetAnalyzerResults( mResults.get() );
 
-	if( mSettings->mMosiChannel != UNDEFINED_CHANNEL )
-		mResults->AddChannelBubblesWillAppearOn( mSettings->mMosiChannel );
-	if( mSettings->mMisoChannel != UNDEFINED_CHANNEL )
-		mResults->AddChannelBubblesWillAppearOn( mSettings->mMisoChannel );
+	if( mSettings->mServoChannel != UNDEFINED_CHANNEL )
+		mResults->AddChannelBubblesWillAppearOn( mSettings->mServoChannel );
+	if( mSettings->mConsoleChannel != UNDEFINED_CHANNEL )
+		mResults->AddChannelBubblesWillAppearOn( mSettings->mConsoleChannel );
 }
 
 void DaisyAnalyzer::WorkerThread()
@@ -83,15 +83,15 @@ void DaisyAnalyzer::Setup()
 	}
 
 
-	if( mSettings->mMosiChannel != UNDEFINED_CHANNEL )
-		mMosi = GetAnalyzerChannelData( mSettings->mMosiChannel );
+	if( mSettings->mServoChannel != UNDEFINED_CHANNEL )
+		mServo = GetAnalyzerChannelData( mSettings->mServoChannel );
 	else
-		mMosi = NULL;
+		mServo = NULL;
 
-	if( mSettings->mMisoChannel != UNDEFINED_CHANNEL )
-		mMiso = GetAnalyzerChannelData( mSettings->mMisoChannel );
+	if( mSettings->mConsoleChannel != UNDEFINED_CHANNEL )
+		mConsole = GetAnalyzerChannelData( mSettings->mConsoleChannel );
 	else
-		mMiso = NULL;
+		mConsole = NULL;
 
 
 	mClock = GetAnalyzerChannelData( mSettings->mClockChannel );
@@ -213,15 +213,15 @@ void DaisyAnalyzer::GetWord()
 		if( mSettings->mDataValidEdge == AnalyzerEnums::LeadingEdge )
 		{
 			mCurrentSample = mClock->GetSampleNumber();
-			if( mMosi != NULL )
+			if( mServo != NULL )
 			{
-				mMosi->AdvanceToAbsPosition( mCurrentSample );
-				mosi_result.AddBit( mMosi->GetBitState() );
+				mServo->AdvanceToAbsPosition( mCurrentSample );
+				mosi_result.AddBit( mServo->GetBitState() );
 			}
-			if( mMiso != NULL )
+			if( mConsole != NULL )
 			{
-				mMiso->AdvanceToAbsPosition( mCurrentSample );
-				miso_result.AddBit( mMiso->GetBitState() );
+				mConsole->AdvanceToAbsPosition( mCurrentSample );
+				miso_result.AddBit( mConsole->GetBitState() );
 			}
 			mArrowLocations.push_back( mCurrentSample );
 		}
@@ -256,15 +256,15 @@ void DaisyAnalyzer::GetWord()
 		if( mSettings->mDataValidEdge == AnalyzerEnums::TrailingEdge )
 		{
 			mCurrentSample = mClock->GetSampleNumber();
-			if( mMosi != NULL )
+			if( mServo != NULL )
 			{
-				mMosi->AdvanceToAbsPosition( mCurrentSample );
-				mosi_result.AddBit( mMosi->GetBitState() );
+				mServo->AdvanceToAbsPosition( mCurrentSample );
+				mosi_result.AddBit( mServo->GetBitState() );
 			}
-			if( mMiso != NULL )
+			if( mConsole != NULL )
 			{
-				mMiso->AdvanceToAbsPosition( mCurrentSample );
-				miso_result.AddBit( mMiso->GetBitState() );
+				mConsole->AdvanceToAbsPosition( mCurrentSample );
+				miso_result.AddBit( mConsole->GetBitState() );
 			}
 			mArrowLocations.push_back( mCurrentSample );
 		}

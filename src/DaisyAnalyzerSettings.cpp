@@ -5,8 +5,8 @@
 #include <cstring>
 
 DaisyAnalyzerSettings::DaisyAnalyzerSettings()
-:	mMosiChannel( UNDEFINED_CHANNEL ),
-	mMisoChannel( UNDEFINED_CHANNEL ),
+:	mServoChannel( UNDEFINED_CHANNEL ),
+	mConsoleChannel( UNDEFINED_CHANNEL ),
 	mClockChannel( UNDEFINED_CHANNEL ),
 	mEnableChannel( UNDEFINED_CHANNEL ),
 	mShiftOrder( AnalyzerEnums::MsbFirst ),
@@ -15,15 +15,15 @@ DaisyAnalyzerSettings::DaisyAnalyzerSettings()
 	mDataValidEdge( AnalyzerEnums::LeadingEdge ), 
 	mEnableActiveState( BIT_LOW )
 {
-	mMosiChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mMosiChannelInterface->SetTitleAndTooltip( "Servo", "Servo Bit Stream" );
-	mMosiChannelInterface->SetChannel( mMosiChannel );
-	mMosiChannelInterface->SetSelectionOfNoneIsAllowed( true );
+	mServoChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+	mServoChannelInterface->SetTitleAndTooltip( "Servo", "Servo Bit Stream" );
+	mServoChannelInterface->SetChannel( mServoChannel );
+	mServoChannelInterface->SetSelectionOfNoneIsAllowed( true );
 
-	mMisoChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
-	mMisoChannelInterface->SetTitleAndTooltip( "Console", "Console Bit Stream" );
-	mMisoChannelInterface->SetChannel( mMisoChannel );
-	mMisoChannelInterface->SetSelectionOfNoneIsAllowed( true );
+	mConsoleChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
+	mConsoleChannelInterface->SetTitleAndTooltip( "Console", "Console Bit Stream" );
+	mConsoleChannelInterface->SetChannel( mConsoleChannel );
+	mConsoleChannelInterface->SetSelectionOfNoneIsAllowed( true );
 
 	mClockChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
 	mClockChannelInterface->SetTitleAndTooltip( "Clock", "Clock (CLK)" );
@@ -74,8 +74,8 @@ DaisyAnalyzerSettings::DaisyAnalyzerSettings()
 	mEnableActiveStateInterface->SetNumber( mEnableActiveState );
 
 
-	AddInterface( mMosiChannelInterface.get() );
-	AddInterface( mMisoChannelInterface.get() );
+	AddInterface( mServoChannelInterface.get() );
+	AddInterface( mConsoleChannelInterface.get() );
 	AddInterface( mClockChannelInterface.get() );
 	AddInterface( mEnableChannelInterface.get() );
 	AddInterface( mShiftOrderInterface.get() );
@@ -91,8 +91,8 @@ DaisyAnalyzerSettings::DaisyAnalyzerSettings()
 	AddExportExtension( 0, "csv", "csv" );
 
 	ClearChannels();
-	AddChannel( mMosiChannel, "Servo", false );
-	AddChannel( mMisoChannel, "Console", false );
+	AddChannel( mServoChannel, "Servo", false );
+	AddChannel( mConsoleChannel, "Console", false );
 	AddChannel( mClockChannel, "CLOCK", false );
 	AddChannel( mEnableChannel, "ENABLE", false );
 }
@@ -103,8 +103,8 @@ DaisyAnalyzerSettings::~DaisyAnalyzerSettings()
 
 bool DaisyAnalyzerSettings::SetSettingsFromInterfaces()
 {
-	Channel mosi = mMosiChannelInterface->GetChannel();
-	Channel miso = mMisoChannelInterface->GetChannel();
+	Channel mosi = mServoChannelInterface->GetChannel();
+	Channel miso = mConsoleChannelInterface->GetChannel();
 	Channel clock = mClockChannelInterface->GetChannel();
 	Channel enable = mEnableChannelInterface->GetChannel();
 
@@ -126,8 +126,8 @@ bool DaisyAnalyzerSettings::SetSettingsFromInterfaces()
 		return false;
 	}
 
-	mMosiChannel = mMosiChannelInterface->GetChannel();
-	mMisoChannel = mMisoChannelInterface->GetChannel();
+	mServoChannel = mServoChannelInterface->GetChannel();
+	mConsoleChannel = mConsoleChannelInterface->GetChannel();
 	mClockChannel = mClockChannelInterface->GetChannel();
 	mEnableChannel = mEnableChannelInterface->GetChannel();
 
@@ -138,8 +138,8 @@ bool DaisyAnalyzerSettings::SetSettingsFromInterfaces()
 	mEnableActiveState =	(BitState) U32( mEnableActiveStateInterface->GetNumber() );
 
 	ClearChannels();
-	AddChannel( mMosiChannel, "Servo", mMosiChannel != UNDEFINED_CHANNEL );
-	AddChannel( mMisoChannel, "Console", mMisoChannel != UNDEFINED_CHANNEL );
+	AddChannel( mServoChannel, "Servo", mServoChannel != UNDEFINED_CHANNEL );
+	AddChannel( mConsoleChannel, "Console", mConsoleChannel != UNDEFINED_CHANNEL );
 	AddChannel( mClockChannel, "CLOCK", mClockChannel != UNDEFINED_CHANNEL );
 	AddChannel( mEnableChannel, "ENABLE", mEnableChannel != UNDEFINED_CHANNEL );
 
@@ -156,8 +156,8 @@ void DaisyAnalyzerSettings::LoadSettings(const char* settings )
 	if( strcmp( name_string, "SaleaeSpiAnalyzer" ) != 0 )
 		AnalyzerHelpers::Assert( "SaleaeSpiAnalyzer: Provided with a settings string that doesn't belong to us;" );
 
-	text_archive >>  mMosiChannel;
-	text_archive >>  mMisoChannel;
+	text_archive >>  mServoChannel;
+	text_archive >>  mConsoleChannel;
 	text_archive >>  mClockChannel;
 	text_archive >>  mEnableChannel;
 	text_archive >>  *(U32*)&mShiftOrder;
@@ -171,8 +171,8 @@ void DaisyAnalyzerSettings::LoadSettings(const char* settings )
 	//	mUsePackets = false; //if the archive fails, set the default value
 
 	ClearChannels();
-	AddChannel( mMosiChannel, "Servo", mMosiChannel != UNDEFINED_CHANNEL );
-	AddChannel( mMisoChannel, "Console", mMisoChannel != UNDEFINED_CHANNEL );
+	AddChannel( mServoChannel, "Servo", mServoChannel != UNDEFINED_CHANNEL );
+	AddChannel( mConsoleChannel, "Console", mConsoleChannel != UNDEFINED_CHANNEL );
 	AddChannel( mClockChannel, "CLOCK", mClockChannel != UNDEFINED_CHANNEL );
 	AddChannel( mEnableChannel, "ENABLE", mEnableChannel != UNDEFINED_CHANNEL );
 
@@ -184,8 +184,8 @@ const char* DaisyAnalyzerSettings::SaveSettings()
 	SimpleArchive text_archive;
 
 	text_archive << "SaleaeSpiAnalyzer";
-	text_archive <<  mMosiChannel;
-	text_archive <<  mMisoChannel;
+	text_archive <<  mServoChannel;
+	text_archive <<  mConsoleChannel;
 	text_archive <<  mClockChannel;
 	text_archive <<  mEnableChannel;
 	text_archive <<  mShiftOrder;
@@ -199,8 +199,8 @@ const char* DaisyAnalyzerSettings::SaveSettings()
 
 void DaisyAnalyzerSettings::UpdateInterfacesFromSettings()
 {
-	mMosiChannelInterface->SetChannel( mMosiChannel );
-	mMisoChannelInterface->SetChannel( mMisoChannel );
+	mServoChannelInterface->SetChannel( mServoChannel );
+	mConsoleChannelInterface->SetChannel( mConsoleChannel );
 	mClockChannelInterface->SetChannel( mClockChannel );
 	mEnableChannelInterface->SetChannel( mEnableChannel );
 	mShiftOrderInterface->SetNumber( mShiftOrder );
