@@ -25,15 +25,26 @@ void DaisyAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel,
 
 	if( ( frame.mFlags & SPI_ERROR_FLAG ) == 0 )
 	{
-		if( channel == mSettings->mServoChannel )
+	  U64 mask = 0x0FFFFFFFF;
+		if( channel == mSettings->mServoInChannel )
 		{
 			char number_str[128];
-			AnalyzerHelpers::GetNumberString( frame.mData1, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
+			AnalyzerHelpers::GetNumberString( (frame.mData1 >> 32) & mask, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
+			AddResultString( number_str );
+		}else if( channel == mSettings->mServoOutChannel )
+		{
+			char number_str[128];
+			AnalyzerHelpers::GetNumberString( frame.mData1 & mask, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
+			AddResultString( number_str );
+		}else if( channel == mSettings->mConsoleInChannel )
+		{
+			char number_str[128];
+			AnalyzerHelpers::GetNumberString( (frame.mData2 >> 32) & mask, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
 			AddResultString( number_str );
 		}else
 		{
 			char number_str[128];
-			AnalyzerHelpers::GetNumberString( frame.mData2, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
+			AnalyzerHelpers::GetNumberString( frame.mData2 && mask, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
 			AddResultString( number_str );
 		}
 	}else
@@ -57,16 +68,12 @@ void DaisyAnalyzerResults::GenerateExportFile(const char* file, DisplayBase disp
 
 	ss << "Time [s],Packet ID,Servo,Console" << std::endl;
 
-	bool mosi_used = true;
-	bool miso_used = true;
+  bool servo_used = mSettings->mServoInChannel != UNDEFINED_CHANNEL
+                    ||  mSettings->mServoOutChannel != UNDEFINED_CHANNEL;
+  bool console_used =  mSettings->mConsoleInChannel != UNDEFINED_CHANNEL
+                       || mSettings->mConsoleOutChannel != UNDEFINED_CHANNEL;
 
-	if( mSettings->mServoChannel == UNDEFINED_CHANNEL )
-		mosi_used = false;
-
-	if( mSettings->mConsoleChannel == UNDEFINED_CHANNEL )
-		miso_used = false;
-
-	U64 num_frames = GetNumFrames();
+  U64 num_frames = GetNumFrames();
 	for( U32 i=0; i < num_frames; i++ )
 	{
 		Frame frame = GetFrame( i );
@@ -77,19 +84,19 @@ void DaisyAnalyzerResults::GenerateExportFile(const char* file, DisplayBase disp
 		char time_str[128];
 		AnalyzerHelpers::GetTimeString( frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128 );
 
-		char mosi_str[128] = "";
-		if( mosi_used == true )
-			AnalyzerHelpers::GetNumberString( frame.mData1, display_base, mSettings->mBitsPerTransfer, mosi_str, 128 );
+		char servo_str[128] = "";
+		if(servo_used)
+			AnalyzerHelpers::GetNumberString(frame.mData1, display_base, mSettings->mBitsPerTransfer, servo_str, 128 );
 
-		char miso_str[128] = "";
-		if( miso_used == true )
-			AnalyzerHelpers::GetNumberString( frame.mData2, display_base, mSettings->mBitsPerTransfer, miso_str, 128 );
+		char console_str[128] = "";
+		if(console_used == true )
+			AnalyzerHelpers::GetNumberString(frame.mData2, display_base, mSettings->mBitsPerTransfer, console_str, 128 );
 
 		U64 packet_id = GetPacketContainingFrameSequential( i ); 
 		if( packet_id != INVALID_RESULT_INDEX )
-			ss << time_str << "," << packet_id << "," << mosi_str << "," << miso_str << std::endl;
+			ss << time_str << "," << packet_id << "," << servo_str << "," << console_str << std::endl;
 		else
-			ss << time_str << ",," << mosi_str << "," << miso_str << std::endl;  //it's ok for a frame not to be included in a packet.
+			ss << time_str << ",," << servo_str << "," << console_str << std::endl;  //it's ok for a frame not to be included in a packet.
 	
 		AnalyzerHelpers::AppendToFile( (U8*)ss.str().c_str(), ss.str().length(), f );
 		ss.str( std::string() );
@@ -110,45 +117,41 @@ void DaisyAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase
     ClearTabularText();
 	Frame frame = GetFrame( frame_index );
 
-	bool mosi_used = true;
-	bool miso_used = true;
+  bool servo_used = mSettings->mServoInChannel != UNDEFINED_CHANNEL
+                    ||  mSettings->mServoOutChannel != UNDEFINED_CHANNEL;
+  bool console_used =  mSettings->mConsoleInChannel != UNDEFINED_CHANNEL
+                       || mSettings->mConsoleOutChannel != UNDEFINED_CHANNEL;
 
-	if( mSettings->mServoChannel == UNDEFINED_CHANNEL )
-		mosi_used = false;
+  char servo_str[128];
+  char console_str[128];
 
-	if( mSettings->mConsoleChannel == UNDEFINED_CHANNEL )
-		miso_used = false;
+  std::stringstream ss;
 
-	char mosi_str[128];
-    char miso_str[128];
+  if( ( frame.mFlags & SPI_ERROR_FLAG ) == 0 )
+  {
+      if(servo_used == true )
+          AnalyzerHelpers::GetNumberString(frame.mData1, display_base, mSettings->mBitsPerTransfer, servo_str, 128 );
+      if(console_used == true )
+          AnalyzerHelpers::GetNumberString(frame.mData2, display_base, mSettings->mBitsPerTransfer, console_str, 128 );
 
-    std::stringstream ss;
-
-    if( ( frame.mFlags & SPI_ERROR_FLAG ) == 0 )
-    {
-        if( mosi_used == true )
-            AnalyzerHelpers::GetNumberString( frame.mData1, display_base, mSettings->mBitsPerTransfer, mosi_str, 128 );
-        if( miso_used == true )
-            AnalyzerHelpers::GetNumberString( frame.mData2, display_base, mSettings->mBitsPerTransfer, miso_str, 128 );
-
-        if( mosi_used == true && miso_used == true )
-        {
-            ss << "Servo: " << mosi_str << ";  Console: " << miso_str;
-        }else
-        {
-            if( mosi_used == true )
-            {
-                ss << "Servo: " << mosi_str;
-            }else
-            {
-                ss << "Console: " << miso_str;
-            }
-        }
-    }
-    else
-    {
-        ss << "The initial (idle) state of the CLK line does not match the settings.";
-    }
+      if(servo_used == true && console_used == true )
+      {
+          ss << "Servo: " << servo_str << ";  Console: " << console_str;
+      }else
+      {
+          if(servo_used == true )
+          {
+              ss << "Servo: " << servo_str;
+          }else
+          {
+              ss << "Console: " << console_str;
+          }
+      }
+  }
+  else
+  {
+      ss << "The initial (idle) state of the CLK line does not match the settings.";
+  }
 
 	AddTabularText( ss.str().c_str() );
 }

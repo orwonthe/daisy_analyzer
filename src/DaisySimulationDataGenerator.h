@@ -22,15 +22,21 @@ protected:
 protected: //SPI specific
 	ClockGenerator mClockGenerator;
 
-	void CreateSpiTransaction();
-	void OutputWord_CPHA0( U64 mosi_data, U64 miso_data );
-	void OutputWord_CPHA1( U64 mosi_data, U64 miso_data );
+	void CreateDaisyTransaction();
+	void OutputWord_Data(
+	    U64 servo_in_data,
+	    U64 servo_out_data,
+	    U64 console_in_data,
+	    U64 console_out_data,
+	    bool leading);
 
 
-	SimulationChannelDescriptorGroup mSpiSimulationChannels;
-	SimulationChannelDescriptor* mConsole;
-	SimulationChannelDescriptor* mServo;
-	SimulationChannelDescriptor* mClock;
-	SimulationChannelDescriptor* mEnable;
+	SimulationChannelDescriptorGroup mDaisySimulationChannels;
+	SimulationChannelDescriptor* mServoIn;
+  SimulationChannelDescriptor* mServoOut;
+  SimulationChannelDescriptor* mConsoleIn;
+  SimulationChannelDescriptor* mConsoleOut;
+  SimulationChannelDescriptor* mShift;
+	SimulationChannelDescriptor* mLoad;
 };
 #endif //SPI_SIMULATION_DATA_GENERATOR

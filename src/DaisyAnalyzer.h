@@ -36,10 +36,12 @@ protected:  //vars
 	bool mSimulationInitilized;
 	DaisySimulationDataGenerator mSimulationDataGenerator;
 
-	AnalyzerChannelData* mServo;
-	AnalyzerChannelData* mConsole;
-	AnalyzerChannelData* mClock;
-	AnalyzerChannelData* mEnable;
+	AnalyzerChannelData* mServoIn;
+	AnalyzerChannelData* mServoOut;
+	AnalyzerChannelData* mConsoleIn;
+	AnalyzerChannelData* mConsoleOut;
+	AnalyzerChannelData* mShift;
+	AnalyzerChannelData* mLoad;
 
 	U64 mCurrentSample;
 	AnalyzerResults::MarkerType mArrowMarker;

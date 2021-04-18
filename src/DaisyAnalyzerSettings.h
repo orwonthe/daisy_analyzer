@@ -16,8 +16,10 @@ public:
 
 	void UpdateInterfacesFromSettings();
 	
-	Channel mServoChannel;
-	Channel mConsoleChannel;
+	Channel mServoInChannel;
+	Channel mServoOutChannel;
+	Channel mConsoleInChannel;
+	Channel mConsoleOutChannel;
 	Channel mShiftClockChannel;
 	Channel mLoadClockChannel;
 	AnalyzerEnums::ShiftOrder mShiftOrder;
@@ -28,15 +30,17 @@ public:
 
 
 protected:
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mServoChannelInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mConsoleChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mServoInChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mServoOutChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mConsoleInChannelInterface;
+	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mConsoleOutChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mShiftClockChannelInterface;
 	std::auto_ptr< AnalyzerSettingInterfaceChannel >	mLoadClockChannelInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mShiftOrderInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mBitsPerTransferInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mClockInactiveStateInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mDataValidEdgeInterface;
-	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mEnableActiveStateInterface;
+//	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mShiftOrderInterface;
+//	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mBitsPerTransferInterface;
+//	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mClockInactiveStateInterface;
+//	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mDataValidEdgeInterface;
+//	std::auto_ptr< AnalyzerSettingInterfaceNumberList > mEnableActiveStateInterface;
 };
 
 #endif //DAISY_ANALYZER_SETTINGS
