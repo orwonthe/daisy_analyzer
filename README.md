@@ -65,7 +65,7 @@ Dependencies:
 
 *Note - newer versions of Visual Studio should be fine.*
 
-Setup options:
+setup options:
 - Programming Languages > Visual C++ > select all sub-components.
 
 Note - if CMake has any problems with the MSVC compiler, it's likely a component is missing.

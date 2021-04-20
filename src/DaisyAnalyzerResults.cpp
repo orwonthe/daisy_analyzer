@@ -7,163 +7,118 @@
 
 #pragma warning(disable: 4996) //warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead.
 
-DaisyAnalyzerResults::DaisyAnalyzerResults(DaisyAnalyzer* analyzer, DaisyAnalyzerSettings* settings )
-:	AnalyzerResults(),
-	mSettings( settings ),
-	mAnalyzer( analyzer )
-{
+DaisyAnalyzerResults::DaisyAnalyzerResults(DaisyAnalyzer *analyzer, DaisyAnalyzerSettings *settings,
+                                           MasterChannelizerManager *channelizerManager)
+    : AnalyzerResults(),
+      mSettings(settings),
+      mAnalyzer(analyzer),
+      mChannelizerManager(channelizerManager) {
 }
 
-DaisyAnalyzerResults::~DaisyAnalyzerResults()
-{
+DaisyAnalyzerResults::~DaisyAnalyzerResults() = default;
+
+void DaisyAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel &channel, DisplayBase display_base) {
+  ClearResultStrings();
+  Frame frame = GetFrame(frame_index);
+
+  if ((frame.mFlags & SPI_ERROR_FLAG) == 0) {
+    char number_str[128];
+    if (mChannelizerManager->getNumberString(frame, channel, display_base, number_str, 128)) {
+      AddResultString(number_str);
+    } else {
+      AddResultString("Error");
+      AddResultString("Non data channel");
+    }
+  } else {
+    AddResultString("Error");
+    AddResultString("Settings mismatch");
+    AddResultString("The initial (idle) state of the CLK line does not match the settings.");
+  }
 }
 
-void DaisyAnalyzerResults::GenerateBubbleText(U64 frame_index, Channel& channel, DisplayBase display_base )  //unrefereced vars commented out to remove warnings.
-{
-	ClearResultStrings();
-	Frame frame = GetFrame( frame_index );
-
-	if( ( frame.mFlags & SPI_ERROR_FLAG ) == 0 )
-	{
-	  U64 mask = 0x0FFFFFFFF;
-		if( channel == mSettings->mServoInChannel )
-		{
-			char number_str[128];
-			AnalyzerHelpers::GetNumberString( (frame.mData1 >> 32) & mask, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
-			AddResultString( number_str );
-		}else if( channel == mSettings->mServoOutChannel )
-		{
-			char number_str[128];
-			AnalyzerHelpers::GetNumberString( frame.mData1 & mask, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
-			AddResultString( number_str );
-		}else if( channel == mSettings->mConsoleInChannel )
-		{
-			char number_str[128];
-			AnalyzerHelpers::GetNumberString( (frame.mData2 >> 32) & mask, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
-			AddResultString( number_str );
-		}else
-		{
-			char number_str[128];
-			AnalyzerHelpers::GetNumberString( frame.mData2 && mask, display_base, mSettings->mBitsPerTransfer, number_str, 128 );
-			AddResultString( number_str );
-		}
-	}else
-	{
-			AddResultString( "Error" );
-			AddResultString( "Settings mismatch" );
-			AddResultString( "The initial (idle) state of the CLK line does not match the settings." );
-	}
-}
-
-void DaisyAnalyzerResults::GenerateExportFile(const char* file, DisplayBase display_base, U32 /*export_type_user_id*/ )
-{
-	//export_type_user_id is only important if we have more than one export type.
-
-
-	std::stringstream ss;
-	void* f = AnalyzerHelpers::StartFile( file );
-
-	U64 trigger_sample = mAnalyzer->GetTriggerSample();
-	U32 sample_rate = mAnalyzer->GetSampleRate();
-
-	ss << "Time [s],Packet ID,Servo,Console" << std::endl;
-
-  bool servo_used = mSettings->mServoInChannel != UNDEFINED_CHANNEL
-                    ||  mSettings->mServoOutChannel != UNDEFINED_CHANNEL;
-  bool console_used =  mSettings->mConsoleInChannel != UNDEFINED_CHANNEL
-                       || mSettings->mConsoleOutChannel != UNDEFINED_CHANNEL;
-
-  U64 num_frames = GetNumFrames();
-	for( U32 i=0; i < num_frames; i++ )
-	{
-		Frame frame = GetFrame( i );
-
-		if( ( frame.mFlags & SPI_ERROR_FLAG ) != 0 )
-			continue;
-		
-		char time_str[128];
-		AnalyzerHelpers::GetTimeString( frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128 );
-
-		char servo_str[128] = "";
-		if(servo_used)
-			AnalyzerHelpers::GetNumberString(frame.mData1, display_base, mSettings->mBitsPerTransfer, servo_str, 128 );
-
-		char console_str[128] = "";
-		if(console_used == true )
-			AnalyzerHelpers::GetNumberString(frame.mData2, display_base, mSettings->mBitsPerTransfer, console_str, 128 );
-
-		U64 packet_id = GetPacketContainingFrameSequential( i ); 
-		if( packet_id != INVALID_RESULT_INDEX )
-			ss << time_str << "," << packet_id << "," << servo_str << "," << console_str << std::endl;
-		else
-			ss << time_str << ",," << servo_str << "," << console_str << std::endl;  //it's ok for a frame not to be included in a packet.
-	
-		AnalyzerHelpers::AppendToFile( (U8*)ss.str().c_str(), ss.str().length(), f );
-		ss.str( std::string() );
-							
-		if( UpdateExportProgressAndCheckForCancel( i, num_frames ) == true )
-		{
-			AnalyzerHelpers::EndFile( f );
-			return;
-		}
-	}
-
-	UpdateExportProgressAndCheckForCancel( num_frames, num_frames );
-	AnalyzerHelpers::EndFile( f );
-}
-
-void DaisyAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase display_base )
-{
-    ClearTabularText();
-	Frame frame = GetFrame( frame_index );
-
-  bool servo_used = mSettings->mServoInChannel != UNDEFINED_CHANNEL
-                    ||  mSettings->mServoOutChannel != UNDEFINED_CHANNEL;
-  bool console_used =  mSettings->mConsoleInChannel != UNDEFINED_CHANNEL
-                       || mSettings->mConsoleOutChannel != UNDEFINED_CHANNEL;
-
-  char servo_str[128];
-  char console_str[128];
+void DaisyAnalyzerResults::GenerateExportFile(const char *file, DisplayBase display_base, U32 /*export_type_user_id*/) {
+  //export_type_user_id is only important if we have more than one export type.
 
   std::stringstream ss;
+  void *export_file = AnalyzerHelpers::StartFile(file);
+  U64 trigger_sample = mAnalyzer->GetTriggerSample();
+  U32 sample_rate = mAnalyzer->GetSampleRate();
+  std::vector<DataChannelizer *> definedDataChannelizers;
+  mChannelizerManager->grabDefinedDataChannels(definedDataChannelizers);
 
-  if( ( frame.mFlags & SPI_ERROR_FLAG ) == 0 )
-  {
-      if(servo_used == true )
-          AnalyzerHelpers::GetNumberString(frame.mData1, display_base, mSettings->mBitsPerTransfer, servo_str, 128 );
-      if(console_used == true )
-          AnalyzerHelpers::GetNumberString(frame.mData2, display_base, mSettings->mBitsPerTransfer, console_str, 128 );
-
-      if(servo_used == true && console_used == true )
-      {
-          ss << "Servo: " << servo_str << ";  Console: " << console_str;
-      }else
-      {
-          if(servo_used == true )
-          {
-              ss << "Servo: " << servo_str;
-          }else
-          {
-              ss << "Console: " << console_str;
-          }
-      }
+  ss << "Time [s],Packet ID";
+  for (DataChannelizer *channelizer: definedDataChannelizers) {
+    ss << "," << channelizer->title();
   }
-  else
-  {
-      ss << "The initial (idle) state of the CLK line does not match the settings.";
+  ss << std::endl;
+  AnalyzerHelpers::AppendToFile((U8 *) ss.str().c_str(), ss.str().length(), export_file);
+
+  U64 num_frames = GetNumFrames();
+  for (U32 frame_index = 0; frame_index < num_frames; frame_index++) {
+    Frame frame = GetFrame(frame_index);
+
+    if ((frame.mFlags & SPI_ERROR_FLAG) != 0)
+      continue;
+
+    ss.str(std::string());
+
+    char time_str[128];
+    AnalyzerHelpers::GetTimeString(frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128);
+    ss << time_str << ",";
+
+    U64 packet_id = GetPacketContainingFrameSequential(frame_index);
+    if (packet_id != INVALID_RESULT_INDEX)
+      ss << packet_id;
+
+    for (DataChannelizer *channelizer: definedDataChannelizers) {
+      char value_str[128] = "";
+      channelizer->getNumberString(frame, display_base, value_str, 128);
+      ss << "," << value_str;
+    }
+    ss << std::endl;
+    AnalyzerHelpers::AppendToFile((U8 *) ss.str().c_str(), ss.str().length(), export_file);
+
+    if (UpdateExportProgressAndCheckForCancel(frame_index, num_frames)) {
+      AnalyzerHelpers::EndFile(export_file);
+      return;
+    }
   }
 
-	AddTabularText( ss.str().c_str() );
+  UpdateExportProgressAndCheckForCancel(num_frames, num_frames);
+  AnalyzerHelpers::EndFile(export_file);
 }
 
-void DaisyAnalyzerResults::GeneratePacketTabularText(U64 /*packet_id*/, DisplayBase /*display_base*/ )  //unrefereced vars commented out to remove warnings.
-{
-	ClearResultStrings();
-	AddResultString( "not supported" );
+void DaisyAnalyzerResults::GenerateFrameTabularText(U64 frame_index, DisplayBase display_base) {
+  ClearTabularText();
+  Frame frame = GetFrame(frame_index);
+
+  std::stringstream ss;
+  if ((frame.mFlags & SPI_ERROR_FLAG) == 0) {
+    std::vector<DataChannelizer *> definedDataChannelizers;
+    mChannelizerManager->grabDefinedDataChannels(definedDataChannelizers);
+    const char *delim = "";
+    for (DataChannelizer *channelizer: definedDataChannelizers) {
+      char value_str[128] = "";
+      channelizer->getNumberString(frame, display_base, value_str, 128);
+      ss << delim << channelizer->label() << ": " << value_str;
+      delim = "; ";
+    }
+  } else {
+    ss << "The initial (idle) state of the CLK line does not match the settings.";
+  }
+  AddTabularText(ss.str().c_str());
 }
 
-void DaisyAnalyzerResults::GenerateTransactionTabularText(U64 /*transaction_id*/, DisplayBase /*display_base*/ )  //unrefereced vars commented out to remove warnings.
+void DaisyAnalyzerResults::GeneratePacketTabularText(U64 /*packet_id*/,
+                                                     DisplayBase /*display_base*/)  //unrefereced vars commented out to remove warnings.
 {
-	ClearResultStrings();
-	AddResultString( "not supported" );
+  ClearResultStrings();
+  AddResultString("not supported");
+}
+
+void DaisyAnalyzerResults::GenerateTransactionTabularText(U64 /*transaction_id*/,
+                                                          DisplayBase /*display_base*/)  //unrefereced vars commented out to remove warnings.
+{
+  ClearResultStrings();
+  AddResultString("not supported");
 }

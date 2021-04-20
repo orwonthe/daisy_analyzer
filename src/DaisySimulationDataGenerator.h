@@ -22,7 +22,7 @@ protected:
 protected: //SPI specific
 	ClockGenerator mClockGenerator;
 
-	void CreateDaisyTransaction();
+	void createDaisyTransaction();
 	void OutputWord_Data(
 	    U64 servo_in_data,
 	    U64 servo_out_data,

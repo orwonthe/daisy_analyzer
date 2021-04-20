@@ -55,7 +55,7 @@ U32 DaisySimulationDataGenerator::GenerateSimulationData(U64 largest_sample_requ
 
 	while(mShift->GetCurrentSampleNumber() < adjusted_largest_sample_requested )
 	{
-    CreateDaisyTransaction();
+    createDaisyTransaction();
 
 		mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(10.0 ) ); //insert 10 bit-periods of idle
 	}
@@ -64,7 +64,7 @@ U32 DaisySimulationDataGenerator::GenerateSimulationData(U64 largest_sample_requ
 	return mDaisySimulationChannels.GetCount();
 }
 
-void DaisySimulationDataGenerator::CreateDaisyTransaction()
+void DaisySimulationDataGenerator::createDaisyTransaction()
 {
 	if(mLoad != NULL )
 		mLoad->Transition();

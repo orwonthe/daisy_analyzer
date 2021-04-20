@@ -2,6 +2,7 @@
 #define SPI_ANALYZER_RESULTS
 
 #include <AnalyzerResults.h>
+#include "MasterChannelizerManager.h"
 
 #define SPI_ERROR_FLAG ( 1 << 0 )
 
@@ -11,7 +12,7 @@ class DaisyAnalyzerSettings;
 class DaisyAnalyzerResults : public AnalyzerResults
 {
 public:
-	DaisyAnalyzerResults(DaisyAnalyzer* analyzer, DaisyAnalyzerSettings* settings );
+	DaisyAnalyzerResults(DaisyAnalyzer* analyzer, DaisyAnalyzerSettings* settings , MasterChannelizerManager *channelizerManager);
 	virtual ~DaisyAnalyzerResults();
 
 	virtual void GenerateBubbleText( U64 frame_index, Channel& channel, DisplayBase display_base );
@@ -26,6 +27,7 @@ protected: //functions
 protected:  //vars
 	DaisyAnalyzerSettings* mSettings;
 	DaisyAnalyzer* mAnalyzer;
+  MasterChannelizerManager* mChannelizerManager;
 };
 
 #endif //SPI_ANALYZER_RESULTS
