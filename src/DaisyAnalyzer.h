@@ -7,7 +7,7 @@
 #include "DaisyChannelizerManager.h"
 #include "SignalGrabber.h"
 
-class DaisyAnalyzerSettings;
+//class DaisyAnalyzerSettings;
 
 class DaisyAnalyzer : public Analyzer2 {
 public:
@@ -38,11 +38,10 @@ protected:
 protected:  //vars
   std::unique_ptr<DaisyAnalyzerSettings> mSettings;
   std::unique_ptr<DaisyAnalyzerResults> mResults;
-  bool mSimulationInitilized;
-  DaisySimulationDataGenerator mSimulationDataGenerator;
+  bool mSimulationInitialized;
+  std::unique_ptr<DaisySimulationDataGenerator> mSimulationDataGenerator;
 
   U64 mCurrentSample;
-  AnalyzerResults::MarkerType mArrowMarker;
   std::vector<U64> mArrowLocations;
 
   std::unique_ptr<DaisyChannelizerManager> mChannelizerManager;
@@ -56,6 +55,7 @@ private:
   void deleteSignalGrabbers();
   void resetClockers();
   void resetSignalGrabbers();
+  void zeroSignalGrabbers();
 };
 
 extern "C" ANALYZER_EXPORT const char *__cdecl GetAnalyzerName();

@@ -4,7 +4,7 @@
 #include <sstream>
 #include <cstring>
 
-DaisyAnalyzerSettings::DaisyAnalyzerSettings(MasterChannelizerManager *channelizerManager) : mChannelizerManager(
+DaisyAnalyzerSettings::DaisyAnalyzerSettings(DaisyChannelizerManager *channelizerManager) : mChannelizerManager(
     channelizerManager) {
 
   // Let the world know about the channel interfaces.
@@ -36,7 +36,7 @@ bool DaisyAnalyzerSettings::SetSettingsFromInterfaces() {
     return false;
   }
 
-  mChannelizerManager->setChannelsFromInterfaces(this);
+  mChannelizerManager->setChannelsFromInterfaces();
   ClearChannels();
   mChannelizerManager->addChannels(this);
   return true;
@@ -68,7 +68,7 @@ const char *DaisyAnalyzerSettings::SaveSettings() {
 }
 
 void DaisyAnalyzerSettings::UpdateInterfacesFromSettings() {
-  mChannelizerManager->setInterfacesFromChannels(this);
+  mChannelizerManager->setInterfacesFromChannels();
 }
 
 //bool DaisyAnalyzerSettings::hasAtLeastOneDataChannel() {
@@ -107,5 +107,3 @@ void DaisyAnalyzerSettings::UpdateInterfacesFromSettings() {
 //  return  mConsoleOut.channelIsDefined();
 //}
 //
-
-

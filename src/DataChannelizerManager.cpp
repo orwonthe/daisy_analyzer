@@ -24,16 +24,18 @@ DataChannelizer *DataChannelizerManager::getDataChannelizer(Channel &channel) {
   return nullptr;
 }
 
-void DataChannelizerManager::grabDefinedDataChannels(std::vector<DataChannelizer *> &dataChannelizers) {
-  for( DataChannelizer* channelizer: mDataChannelizers) {
-    if(channelizer->channelIsDefined()) {
-      dataChannelizers.push_back(channelizer);
-    }
-  }
-}
-
 void DataChannelizerManager::markChannelsAsBubbleWorthy(AnalyzerResults *analyzerResults) {
   for( DataChannelizer* channelizer: mDataChannelizers) {
     channelizer->markChannelAsBubbleWorthy(analyzerResults);
   }
+}
+
+std::vector<DataChannelizer *> DataChannelizerManager::definedDataChannels() {
+  std::vector<DataChannelizer *> definedChannels;
+  for( DataChannelizer* channelizer: mDataChannelizers) {
+    if(channelizer->channelIsDefined()) {
+      definedChannels.push_back(channelizer);
+    }
+  }
+  return definedChannels;
 }

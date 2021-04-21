@@ -7,6 +7,7 @@
 
 #include "ClockingChannelizerManager.h"
 #include "DataChannelizerManager.h"
+#include "ChannelizedAnalyzerSettings.h"
 
 class MasterChannelizerManager {
 public:
@@ -19,11 +20,11 @@ public:
   void addDataChannelizer(DataChannelizer *dataChannelizer, bool transferOwnership = true);
 
   // Managing channelizers
-  void addChannelInterfaces(AnalyzerSettings *settings);
-  void addChannelsUnused(AnalyzerSettings *settings);
-  void addChannels(AnalyzerSettings *settings);
-  void setChannelsFromInterfaces(AnalyzerSettings *settings);
-  void setInterfacesFromChannels(AnalyzerSettings *settings);
+  void addChannelInterfaces(ChannelizedAnalyzerSettings *settings);
+  void addChannelsUnused(ChannelizedAnalyzerSettings *settings);
+  void addChannels(ChannelizedAnalyzerSettings *settings);
+  void setChannelsFromInterfaces();
+  void setInterfacesFromChannels();
   void markDataChannelsAsBubbleWorthy(AnalyzerResults* analyzerResults);
 
   // Attributes
@@ -32,7 +33,7 @@ public:
   std::string dataTitles(const char *delim = ", ");
   std::string activeDataTitles(const char *delim = ",");
   DataChannelizer* getDataChannelizer(Channel &channel);
-  void grabDefinedDataChannels(std::vector<DataChannelizer *> &dataChannelizers);
+  std::vector<DataChannelizer *> definedDataChannels();
 
   // Extracting results
   bool getNumberString(Frame &frame, Channel &channel, DisplayBase display_base, char *result_string,

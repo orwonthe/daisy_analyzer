@@ -11,6 +11,7 @@
 
 class Clocker : public AnalyzerChannelDataHolder {
 public:
+  explicit Clocker(AnalyzerChannelData *channelData);
   virtual ~Clocker();
   virtual U64 reachInactiveState() = 0;
   virtual U64 reachActiveState() = 0;
@@ -24,7 +25,7 @@ protected:
 
 class FallingClocker : public Clocker {
 public:
-  FallingClocker(AnalyzerChannelData *channelData);
+  explicit FallingClocker(AnalyzerChannelData *channelData);
   virtual ~FallingClocker();
   virtual U64 reachInactiveState();
   virtual U64 reachActiveState();
@@ -34,7 +35,7 @@ public:
 
 class RisingClocker : public Clocker {
 public:
-  RisingClocker(AnalyzerChannelData *channelData);
+  explicit RisingClocker(AnalyzerChannelData *channelData);
   virtual ~RisingClocker();
   virtual U64 reachInactiveState();
   virtual U64 reachActiveState();

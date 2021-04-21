@@ -11,8 +11,7 @@
 class AnalyzerChannelDataHolder {
 
 public:
-  AnalyzerChannelDataHolder(AnalyzerChannelData *channelData);
-  U64 getSampleNumber();
+  explicit AnalyzerChannelDataHolder(AnalyzerChannelData *channelData);
   U32 advanceToAbsolutePosition(U64 sample_number);
 protected:
   AnalyzerChannelData *mChannelData;

@@ -1,167 +1,86 @@
 #include "DaisySimulationDataGenerator.h"
 #include "DaisyAnalyzerSettings.h"
 
-DaisySimulationDataGenerator::DaisySimulationDataGenerator()
-{
-  mValue = 1;
+DaisySimulationDataGenerator::DaisySimulationDataGenerator(DaisyChannelizerManager *channelizerManager)
+    : mChannelizerManager(channelizerManager), mShiftSimulator(nullptr), mLoadSimulator(nullptr), mSettings(nullptr),
+      mSimulationSampleRateHz(10000) {
 }
 
-DaisySimulationDataGenerator::~DaisySimulationDataGenerator()
-{
+DaisySimulationDataGenerator::~DaisySimulationDataGenerator() { deleteBitGenerators(); }
+
+void DaisySimulationDataGenerator::Initialize(U32 simulation_sample_rate, DaisyAnalyzerSettings *settings) {
+  deleteBitGenerators();
+  mSimulationSampleRateHz = simulation_sample_rate;
+  mSettings = settings;
+
+  mClockGenerator.Init(simulation_sample_rate / 10.0, simulation_sample_rate);
+  mLoadSimulator = mChannelizerManager->addLoadSimulationChannelDescriptor(mDaisySimulationChannels,
+                                                                           simulation_sample_rate, BIT_HIGH);
+  mShiftSimulator = mChannelizerManager->addShiftSimulationChannelDescriptor(mDaisySimulationChannels,
+                                                                             simulation_sample_rate, BIT_HIGH);
+
+  U32 startValue = 0x00010203;
+  U32 deltaValue = 0x00010305;
+
+  for (DataChannelizer *channelizer: mChannelizerManager->definedDataChannels()) {
+    SimulationChannelDescriptor *descriptor = channelizer->addSimulationChannelDescriptor(mDaisySimulationChannels,
+                                                                                          simulation_sample_rate,
+                                                                                          BIT_LOW);
+    mDataSimulators.push_back(descriptor);
+    mBitGenerators.push_back(new BitGenerator(startValue, deltaValue, 24));
+    startValue += 0x00101010;
+    deltaValue += 0x00020202;
+  }
+  advanceHalfPeriod(10.0);
 }
 
-void DaisySimulationDataGenerator::Initialize(U32 simulation_sample_rate, DaisyAnalyzerSettings* settings )
-{
-	mSimulationSampleRateHz = simulation_sample_rate;
-	mSettings = settings;
+U32 DaisySimulationDataGenerator::GenerateSimulationData(U64 largest_sample_requested, U32 sample_rate,
+                                                         SimulationChannelDescriptor **simulation_channels) {
+  U64 adjusted_largest_sample_requested = AnalyzerHelpers::AdjustSimulationTargetSample(largest_sample_requested,
+                                                                                        sample_rate,
+                                                                                        mSimulationSampleRateHz);
 
-	mClockGenerator.Init( simulation_sample_rate / 10, simulation_sample_rate );
-
-	if( settings->mConsoleInChannel != UNDEFINED_CHANNEL )
-		mConsoleIn = mDaisySimulationChannels.Add(settings->mConsoleInChannel, mSimulationSampleRateHz, BIT_LOW );
-	else
-		mConsoleIn = NULL;
-	
-	if( settings->mConsoleOutChannel != UNDEFINED_CHANNEL )
-		mConsoleOut = mDaisySimulationChannels.Add(settings->mConsoleOutChannel, mSimulationSampleRateHz, BIT_LOW );
-	else
-		mConsoleOut = NULL;
-
-	if( settings->mServoInChannel != UNDEFINED_CHANNEL )
-		mServoIn = mDaisySimulationChannels.Add(settings->mServoInChannel, mSimulationSampleRateHz, BIT_LOW );
-	else
-		mServoIn = NULL;
-
-	if( settings->mServoOutChannel != UNDEFINED_CHANNEL )
-		mServoOut = mDaisySimulationChannels.Add(settings->mServoOutChannel, mSimulationSampleRateHz, BIT_LOW );
-	else
-		mServoOut = NULL;
-
-  mShift = mDaisySimulationChannels.Add(settings->mShiftClockChannel, mSimulationSampleRateHz, mSettings->mClockInactiveState );
-
-	if(settings->mLoadClockChannel != UNDEFINED_CHANNEL )
-    mLoad = mDaisySimulationChannels.Add(settings->mLoadClockChannel, mSimulationSampleRateHz, Invert(mSettings->mEnableActiveState ) );
-	else
-    mLoad = NULL;
-
-	mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(10.0 ) ); //insert 10 bit-periods of idle
-
-	mValue = 0;
-}
-
-U32 DaisySimulationDataGenerator::GenerateSimulationData(U64 largest_sample_requested, U32 sample_rate, SimulationChannelDescriptor** simulation_channels )
-{
-	U64 adjusted_largest_sample_requested = AnalyzerHelpers::AdjustSimulationTargetSample( largest_sample_requested, sample_rate, mSimulationSampleRateHz );
-
-	while(mShift->GetCurrentSampleNumber() < adjusted_largest_sample_requested )
-	{
+  while (mShiftSimulator->GetCurrentSampleNumber() < adjusted_largest_sample_requested) {
     createDaisyTransaction();
+    advanceHalfPeriod(10.0);
+  }
 
-		mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(10.0 ) ); //insert 10 bit-periods of idle
-	}
-
-	*simulation_channels = mDaisySimulationChannels.GetArray();
-	return mDaisySimulationChannels.GetCount();
+  *simulation_channels = mDaisySimulationChannels.GetArray();
+  return mDaisySimulationChannels.GetCount();
 }
 
-void DaisySimulationDataGenerator::createDaisyTransaction()
-{
-	if(mLoad != NULL )
-		mLoad->Transition();
-
-	mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(2.0 ) );
-
-	bool leading = mSettings->mDataValidEdge == AnalyzerEnums::LeadingEdge;
-
-  if(mLoad != NULL )
-    mLoad->Transition();
-
-  if(mLoad != NULL )
-    mLoad->Transition();
-
-  OutputWord_Data(mValue, mValue+1, mValue+2, mValue+3, leading);
-  mValue += 4;
-  OutputWord_Data(mValue, mValue+1, mValue+2, mValue+3, leading);
-  mValue += 4;
-  OutputWord_Data(mValue, mValue+1, mValue+2, mValue+3, leading);
-  mValue += 4;
-  OutputWord_Data(mValue, mValue+1, mValue+2, mValue+3, leading);
-  mValue += 4;
-
+void DaisySimulationDataGenerator::createDaisyTransaction() {
+  loadCycle();
+  for (int bit_index = 0; bit_index < 24; bit_index++) {
+    shiftCycle();
+  }
 }
 
-//void DaisySimulationDataGenerator::OutputWord_CPHA0(U64 mosi_data, U64 miso_data )
-//{
-//	BitExtractor mosi_bits( mosi_data, mSettings->mShiftOrder, mSettings->mBitsPerTransfer );
-//	BitExtractor miso_bits( miso_data, mSettings->mShiftOrder, mSettings->mBitsPerTransfer );
-//
-//	U32 count = mSettings->mBitsPerTransfer;
-//	for( U32 i=0; i<count; i++ )
-//	{
-//		if( mServo != NULL )
-//			mServo->TransitionIfNeeded( mosi_bits.GetNextBit() );
-//
-//		if( mConsole != NULL )
-//			mConsole->TransitionIfNeeded( miso_bits.GetNextBit() );
-//
-//		mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(.5 ) );
-//		mClock->Transition();  //data valid
-//
-//		mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(.5 ) );
-//		mClock->Transition();  //data invalid
-//	}
-//
-//	if( mServo != NULL )
-//		mServo->TransitionIfNeeded( BIT_LOW );
-//
-//	if( mConsole != NULL )
-//		mConsole->TransitionIfNeeded( BIT_LOW );
-//
-//	mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(2.0 ) );
-//}
-
-void DaisySimulationDataGenerator::OutputWord_Data(
-    U64 servo_in_data,
-    U64 servo_out_data,
-    U64 console_in_data,
-    U64 console_out_data,
-    bool leading)
-{
-	BitExtractor servo_in_bits( servo_in_data, mSettings->mShiftOrder, mSettings->mBitsPerTransfer );
-	BitExtractor servo_out_bits( servo_out_data, mSettings->mShiftOrder, mSettings->mBitsPerTransfer );
-	BitExtractor console_in_bits( console_in_data, mSettings->mShiftOrder, mSettings->mBitsPerTransfer );
-	BitExtractor console_out_bits( console_out_data, mSettings->mShiftOrder, mSettings->mBitsPerTransfer );
-
-	U32 count = mSettings->mBitsPerTransfer;
-	for( U32 i=0; i<count; i++ )
-	{
-		if(!leading)
-		  mShift->Transition();  //data invalid
-		if( mServoIn != NULL )
-			mServoIn->TransitionIfNeeded( servo_in_bits.GetNextBit() );
-		if( mServoOut != NULL )
-			mServoOut->TransitionIfNeeded( servo_out_bits.GetNextBit() );
-		if( mConsoleIn != NULL )
-			mConsoleIn->TransitionIfNeeded( console_in_bits.GetNextBit() );
-		if( mConsoleOut != NULL )
-			mConsoleOut->TransitionIfNeeded( console_out_bits.GetNextBit() );
-
-		mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(.5 ) );
-    if(leading)
-      mShift->Transition();  //data invalid
-		mShift->Transition();  //data valid
-
-		mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(.5 ) );
-	}
-
-	if( mServoIn != NULL )
-		mServoIn->TransitionIfNeeded( BIT_LOW );
-	if( mServoOut != NULL )
-		mServoOut->TransitionIfNeeded( BIT_LOW );
-	if( mConsoleIn != NULL )
-		mConsoleIn->TransitionIfNeeded( BIT_LOW );
-	if( mConsoleOut != NULL )
-		mConsoleOut->TransitionIfNeeded( BIT_LOW );
-
-	mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(2.0 ) );
+void DaisySimulationDataGenerator::loadCycle() {
+  mLoadSimulator->Transition();
+  advanceHalfPeriod();
+  mLoadSimulator->Transition();
+  advanceHalfPeriod();
 }
+
+void DaisySimulationDataGenerator::shiftCycle() {
+  mShiftSimulator->Transition();
+  for (int dataChannelIndex = 0; dataChannelIndex < mDataSimulators.size(); dataChannelIndex++) {
+    mDataSimulators[dataChannelIndex]->TransitionIfNeeded(mBitGenerators[dataChannelIndex]->nextBit());
+  }
+  advanceHalfPeriod();
+  mShiftSimulator->Transition();
+  advanceHalfPeriod();
+}
+
+void DaisySimulationDataGenerator::advanceHalfPeriod(double multiple) {
+  mDaisySimulationChannels.AdvanceAll(mClockGenerator.AdvanceByHalfPeriod(multiple)); //insert 10 bit-periods of idle
+}
+
+void DaisySimulationDataGenerator::deleteBitGenerators() {
+  for (BitGenerator *generator: mBitGenerators) {
+    delete generator;
+  }
+  mBitGenerators.clear();
+}
+

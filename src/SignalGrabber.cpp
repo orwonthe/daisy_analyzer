@@ -9,11 +9,9 @@ SignalGrabber::SignalGrabber(AnalyzerChannelData *channelData, bool useData2, U6
     mUseData2(useData2), mMask(mask), mShift(shift), mSignal(0) {
 }
 
-SignalGrabber::~SignalGrabber() {
+SignalGrabber::~SignalGrabber() = default;
 
-}
-
-void SignalGrabber::clear() {
+void SignalGrabber::zero() {
   mSignal = 0;
 }
 
@@ -25,7 +23,7 @@ void SignalGrabber::grab() {
   }
 }
 
-void SignalGrabber::stash(Frame &frame) {
+void SignalGrabber::stash(Frame &frame) const {
   // Using the mask here is redundant but a bit more robust.
   U64 data_value = (mSignal & mMask) << mShift;
   if (mUseData2) {

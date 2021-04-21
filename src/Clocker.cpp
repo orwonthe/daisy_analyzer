@@ -5,9 +5,7 @@
 #include "Clocker.h"
 #include "AnalyzerChannelDataHolder.h"
 
-Clocker::~Clocker() {
-
-}
+Clocker::~Clocker() = default;
 
 U64 Clocker::advanceToRisingEdge() {
   reachDesiredState(BIT_LOW);
@@ -28,13 +26,13 @@ U64 Clocker::reachDesiredState(BitState desiredState) {
   return mChannelData->GetSampleNumber();
 }
 
-FallingClocker::FallingClocker(AnalyzerChannelData *channelData) : AnalyzerChannelDataHolder(channelData) {
+Clocker::Clocker(AnalyzerChannelData *channelData) : AnalyzerChannelDataHolder(channelData) {}
+
+FallingClocker::FallingClocker(AnalyzerChannelData *channelData) : Clocker(channelData) {
 
 }
 
-FallingClocker::~FallingClocker() {
-
-}
+FallingClocker::~FallingClocker() = default;
 
 U64 FallingClocker::advanceToMarkerBegin() {
   return advanceToFallingEdge();
@@ -49,14 +47,12 @@ U64 FallingClocker::reachInactiveState() {
 }
 
 U64 FallingClocker::reachActiveState() {
-  return reachDesiredState(BIT_LOW;
+  return reachDesiredState(BIT_LOW);
 }
 
-RisingClocker::RisingClocker(AnalyzerChannelData *channelData) : AnalyzerChannelDataHolder(channelData) {}
+RisingClocker::RisingClocker(AnalyzerChannelData *channelData) : Clocker(channelData) {}
 
-RisingClocker::~RisingClocker() {
-
-}
+RisingClocker::~RisingClocker() = default;
 
 U64 RisingClocker::advanceToMarkerBegin() {
   return advanceToRisingEdge();
@@ -67,7 +63,7 @@ U64 RisingClocker::advanceToMarkerEnd() {
 }
 
 U64 RisingClocker::reachInactiveState() {
-  return reachDesiredState(BIT_LOW;
+  return reachDesiredState(BIT_LOW);
 }
 
 U64 RisingClocker::reachActiveState() {

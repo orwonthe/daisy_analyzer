@@ -4,12 +4,13 @@
 #include <AnalyzerSettings.h>
 #include <AnalyzerTypes.h>
 #include <AnalyzerHelpers.h>
-#include "MasterChannelizerManager.h"
+#include "DaisyChannelizerManager.h"
+#include "ChannelizedAnalyzerSettings.h"
 
-class DaisyAnalyzerSettings : public AnalyzerSettings
+class DaisyAnalyzerSettings : public ChannelizedAnalyzerSettings
 {
 public:
-	DaisyAnalyzerSettings(MasterChannelizerManager* channelizerManager);
+	explicit DaisyAnalyzerSettings(DaisyChannelizerManager* channelizerManager);
 	virtual ~DaisyAnalyzerSettings();
 
 	virtual bool SetSettingsFromInterfaces();
@@ -29,7 +30,7 @@ public:
 //	bool hasConsoleOut();
 
 protected:
-  MasterChannelizerManager* mChannelizerManager;
+  DaisyChannelizerManager* mChannelizerManager;
 
   // Archiving
 //  void loadFromArchive(SimpleArchive& archive);

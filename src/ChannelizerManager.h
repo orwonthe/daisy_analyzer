@@ -17,16 +17,16 @@ public:
   void addChannelizer(Channelizer *channelizer, bool transferOwnership = true);
 
   // Managing channelizers
-  void addChannelInterfaces(AnalyzerSettings *settings);
-  void addChannelsUnused(AnalyzerSettings *settings);
-  void addChannels(AnalyzerSettings *settings);
-  void setChannelsFromInterfaces(AnalyzerSettings *settings);
-
+  void addChannelInterfaces(ChannelizedAnalyzerSettings *settings);
+  void addChannelsUnused(ChannelizedAnalyzerSettings *settings);
+  void addChannels(ChannelizedAnalyzerSettings *settings);
+  void setChannelsFromInterfaces();
+  void setInterfacesFromChannels();
   // Attributes
   int definedChannelCount();
   bool hasAtLeastOneDefinedChannel();
   std::string titles(const char* delim=", ");
-  void grabDefinedChannels(std::vector<Channelizer *> &channelizers);
+  std::vector<Channelizer *> definedChannels();
 
   // Archiving and exporting
   void loadFromArchive(SimpleArchive& archive);

@@ -13,25 +13,31 @@ void ChannelizerManager::addChannelizer(Channelizer *channelizer, bool transferO
   if (transferOwnership) { addOwnedChannelizer(channelizer); }
 }
 
-void ChannelizerManager::addChannelInterfaces(AnalyzerSettings *settings) {
+void ChannelizerManager::addChannelInterfaces(ChannelizedAnalyzerSettings *settings) {
   for (Channelizer *channelizer: mChannelizers)
     channelizer->addInterface(settings);
 }
 
-void ChannelizerManager::addChannelsUnused(AnalyzerSettings *settings) {
+void ChannelizerManager::addChannelsUnused(ChannelizedAnalyzerSettings *settings) {
   for (Channelizer *channelizer: mChannelizers)
     channelizer->addChannelUnused(settings);
 }
 
-void ChannelizerManager::addChannels(AnalyzerSettings *settings) {
+void ChannelizerManager::addChannels(ChannelizedAnalyzerSettings *settings) {
   for (Channelizer *channelizer: mChannelizers)
     channelizer->addChannel(settings);
 }
 
-void ChannelizerManager::setChannelsFromInterfaces(AnalyzerSettings *settings) {
+void ChannelizerManager::setChannelsFromInterfaces() {
   for (Channelizer *channelizer: mChannelizers)
-    channelizer->setChannelFromInterface(settings);
+    channelizer->setChannelFromInterface();
 }
+
+void ChannelizerManager::setInterfacesFromChannels() {
+  for (Channelizer *channelizer: mChannelizers)
+    channelizer->setInterfaceFromChannel();
+}
+
 
 int ChannelizerManager::definedChannelCount() {
   return Channelizer::definedChannelCountFromInterface(mChannelizers);
@@ -55,12 +61,14 @@ void ChannelizerManager::saveToArchive(SimpleArchive &archive) {
     channelizer->saveToArchive(archive);
 }
 
-void ChannelizerManager::grabDefinedChannels(std::vector<Channelizer *> &channelizers) {
+std::vector<Channelizer *> ChannelizerManager::definedChannels() {
+  std::vector<Channelizer *> channelizers;
   for( Channelizer* channelizer: mChannelizers) {
     if(channelizer->channelIsDefined()) {
       channelizers.push_back(channelizer);
     }
   }
+  return channelizers;
 }
 
 

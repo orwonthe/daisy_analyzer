@@ -25,9 +25,14 @@ DataChannelizer::DataChannelizer(
 }
 
 void DataChannelizer::getNumberString(Frame &frame, DisplayBase display_base, char *result_string,
-                                      U32 result_string_max_length) {
+                                      U32 result_string_max_length) const {
   U64 data_value = mUseData2 ? frame.mData2 : frame.mData1;
   AnalyzerHelpers::GetNumberString((data_value >> mShift) & mMask, display_base, mBitsWide, result_string, result_string_max_length);
+}
+
+SignalGrabber *DataChannelizer::createSignalGrabber(Analyzer2 *analyzer) {
+  AnalyzerChannelData* analyzerChannelData = analyzer->GetAnalyzerChannelData(mChannel);
+  return new SignalGrabber(analyzerChannelData, mUseData2, mMask, mShift);
 }
 
 DataChannelizer::~DataChannelizer() = default;

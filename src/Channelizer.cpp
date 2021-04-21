@@ -11,10 +11,9 @@ Channelizer::Channelizer(const char *title, const char *label, const char *toolt
     mTitle(title),
     mLabel(label),
     mTooltip(tooltip),
-    mChannelInterface(tooltip),
     mOptional(optional) {
   mChannelInterface.reset(new AnalyzerSettingInterfaceChannel());
-  mChannelInterface->SetTitleAndTooltip(mChannelInterface, mTitle, mTooltip);
+  mChannelInterface->SetTitleAndTooltip(mTitle, mTooltip);
   mChannelInterface->SetChannel(mChannel);
   mChannelInterface->SetSelectionOfNoneIsAllowed(mOptional);
 }
@@ -30,7 +29,7 @@ bool Channelizer::channelIsDefined() {
 }
 
 bool Channelizer::channelFromInterfaceIsDefined() {
-  return mChannelInterface.GetChannel() != UNDEFINED_CHANNEL;
+  return mChannelInterface->GetChannel() != UNDEFINED_CHANNEL;
 }
 
 void Channelizer::setChannelFromInterface() {
@@ -41,28 +40,28 @@ void Channelizer::setInterfaceFromChannel() {
   mChannelInterface->SetChannel(mChannel);
 }
 
-void Channelizer::addChannelUnused(AnalyzerSettings *settings) {
+void Channelizer::addChannelUnused(ChannelizedAnalyzerSettings *settings) {
   addChannel(settings, false);
 }
 
-void Channelizer::addChannel(AnalyzerSettings *settings) {
+void Channelizer::addChannel(ChannelizedAnalyzerSettings *settings) {
   addChannel(settings, mChannel != UNDEFINED_CHANNEL);
 }
 
-void Channelizer::addChannel(AnalyzerSettings *settings, bool isUsed) {
-  settings->AddChannel(mChannel, mLabel, isUsed);
+void Channelizer::addChannel(ChannelizedAnalyzerSettings *settings, bool isUsed) {
+  settings->addChannel(mChannel, mLabel, isUsed);
 }
 
-void Channelizer::addInterface(AnalyzerSettings *settings) {
-  settings->AddInterface(mChannelInterface.get());
+void Channelizer::addInterface(ChannelizedAnalyzerSettings *settings) {
+  settings->addInterface(mChannelInterface.get());
 }
 
-bool Channelizer::hasOverlap(std::vector<Channelizer *> &channels) {
+bool Channelizer::hasOverlap(std::vector<Channelizer *> &channelizers) {
   std::vector<Channel> channels;
-  for (Channelizer *pChannel: channels) {
+  for (Channelizer *pChannel: channelizers) {
     channels.push_back(pChannel->getInterface()->GetChannel());
   }
-  return AnalyzerHelpers::DoChannelsOverlap(&channels[0], channels.size());
+  return AnalyzerHelpers::DoChannelsOverlap(&channels[0], (U32) channels.size());
 }
 
 int Channelizer::definedChannelCountFromInterface(std::vector<Channelizer *> &channels) {
@@ -102,7 +101,7 @@ const char *Channelizer::tooltip() {
 std::string Channelizer::titles(std::vector<Channelizer *> &channels, const char *delim) {
   std::string result;
   const char *current_delim = "";
-  for (Channelizer *channelizer: mChannelizers) {
+  for (Channelizer *channelizer: channels) {
     result += current_delim;
     result += channelizer->title();
     current_delim = delim;
@@ -112,11 +111,17 @@ std::string Channelizer::titles(std::vector<Channelizer *> &channels, const char
 
 void Channelizer::markChannelAsBubbleWorthy(AnalyzerResults *analyzerResults) {
   if (mChannel != UNDEFINED_CHANNEL) {
-    mResults->AddChannelBubblesWillAppearOn(mChannel);
+    analyzerResults->AddChannelBubblesWillAppearOn(mChannel);
   }
 }
 
 AnalyzerChannelData *Channelizer::getAnalyzerChannelData(Analyzer2* analyzer) {
   return analyzer->GetAnalyzerChannelData(mChannel);
+}
+
+SimulationChannelDescriptor *
+Channelizer::addSimulationChannelDescriptor(SimulationChannelDescriptorGroup &group, U32 sample_rate,
+                                            BitState intial_bit_state) {
+  return group.Add(mChannel, sample_rate, intial_bit_state);
 }
 

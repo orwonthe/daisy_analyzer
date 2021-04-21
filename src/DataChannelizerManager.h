@@ -11,6 +11,7 @@
 #include "DataChannelizer.h"
 #include "ChannelizerManager.h"
 
+class DataChannelizer;
 class DataChannelizerManager : public ChannelizerManager {
 public:
   DataChannelizerManager();
@@ -20,7 +21,7 @@ public:
   void addDataChannelizer(DataChannelizer *dataChannelizer, bool transferOwnership = true);
   DataChannelizer* getDataChannelizer(Channel &channel);
 
-  void grabDefinedDataChannels(std::vector<DataChannelizer *> &dataChannelizers);
+  std::vector<DataChannelizer *> definedDataChannels();
   void markChannelsAsBubbleWorthy(AnalyzerResults* analyzerResults);
 
 protected:

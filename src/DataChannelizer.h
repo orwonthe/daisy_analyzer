@@ -9,7 +9,7 @@
 #include "SignalGrabber.h"
 #include <AnalyzerResults.h>
 
-
+class SignalGrabber;
 class DataChannelizer : public Channelizer {
 public:
   virtual ~DataChannelizer();
@@ -17,7 +17,7 @@ public:
   DataChannelizer(const char *title, const char *label, const char *tooltip, bool optional, bool useData2,
                   U32 bitsWide, U32 shift);
 
-  void getNumberString(Frame &frame, DisplayBase display_base, char *result_string, U32 result_string_max_length);
+  void getNumberString(Frame &frame, DisplayBase display_base, char *result_string, U32 result_string_max_length) const;
   SignalGrabber* createSignalGrabber(Analyzer2* analyzer);
 
 protected:

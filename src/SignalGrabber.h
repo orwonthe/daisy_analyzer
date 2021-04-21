@@ -2,8 +2,8 @@
 // Created by willy on 4/20/21.
 //
 
-#ifndef DAISY_ANALYZER_SIGNALGRABBER_H
-#define DAISY_ANALYZER_SIGNALGRABBER_H
+#ifndef DAISY_ANALYZER_SIGNAL_GRABBER_H
+#define DAISY_ANALYZER_SIGNAL_GRABBER_H
 
 #include "DataChannelizerManager.h"
 #include <AnalyzerChannelData.h>
@@ -15,9 +15,9 @@ public:
   SignalGrabber(AnalyzerChannelData *channelData, bool useData2, U64 mask, int shift);
   virtual ~SignalGrabber();
 
-  void clear();
+  void zero();
   void grab();
-  void stash(Frame& frame);
+  void stash(Frame& frame) const;
 protected:
   bool mUseData2;
   U64 mMask;
@@ -26,4 +26,4 @@ protected:
 };
 
 
-#endif //DAISY_ANALYZER_SIGNALGRABBER_H
+#endif //DAISY_ANALYZER_SIGNAL_GRABBER_H

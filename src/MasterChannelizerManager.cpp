@@ -19,29 +19,29 @@ void MasterChannelizerManager::addDataChannelizer(DataChannelizer *dataChanneliz
   mChannelizers.push_back(dataChannelizer);
 }
 
-void MasterChannelizerManager::addChannelInterfaces(AnalyzerSettings *settings) {
+void MasterChannelizerManager::addChannelInterfaces(ChannelizedAnalyzerSettings *settings) {
   mClockingManager.addChannelInterfaces(settings);
   mDataManager.addChannelInterfaces(settings);
 }
 
-void MasterChannelizerManager::addChannelsUnused(AnalyzerSettings *settings) {
+void MasterChannelizerManager::addChannelsUnused(ChannelizedAnalyzerSettings *settings) {
   mClockingManager.addChannelsUnused(settings);
   mDataManager.addChannelsUnused(settings);
 }
 
-void MasterChannelizerManager::addChannels(AnalyzerSettings *settings) {
+void MasterChannelizerManager::addChannels(ChannelizedAnalyzerSettings *settings) {
   mClockingManager.addChannels(settings);
   mDataManager.addChannels(settings);
 }
 
-void MasterChannelizerManager::setChannelsFromInterfaces(AnalyzerSettings *settings) {
-  mClockingManager.setChannelsFromInterfaces(settings);
-  mDataManager.setChannelsFromInterfaces(settings);
+void MasterChannelizerManager::setChannelsFromInterfaces() {
+  mClockingManager.setChannelsFromInterfaces();
+  mDataManager.setChannelsFromInterfaces();
 }
 
-void MasterChannelizerManager::setInterfacesFromChannels(AnalyzerSettings *settings) {
-  mClockingManager.setInterfacesFromChannels(settings);
-  mDataManager.setInterfacesFromChannels(settings);
+void MasterChannelizerManager::setInterfacesFromChannels() {
+  mClockingManager.setInterfacesFromChannels();
+  mDataManager.setInterfacesFromChannels();
 }
 
 
@@ -72,7 +72,7 @@ MasterChannelizerManager::getNumberString(Frame &frame, Channel &channel, Displa
                                           U32 result_string_max_length) {
   DataChannelizer *channelizer = getDataChannelizer(channel);
   if (channelizer) {
-    channelizer->getNumberString(frame, display_base, result_string, result_string_max_length;
+    channelizer->getNumberString(frame, display_base, result_string, result_string_max_length);
     return true;
   } else { return false; }
 }
@@ -82,14 +82,14 @@ DataChannelizer *MasterChannelizerManager::getDataChannelizer(Channel &channel) 
 }
 
 std::string MasterChannelizerManager::activeDataTitles(const char *delim) {
-  std::vector<Channelizer *> definedDataChannelizers;
-  mDataManager.grabDefinedChannels(definedDataChannelizers);
-  return Channelizer::titles(definedDataChannelizers);
+  std::vector<Channelizer *> definedDataChannelizers = mDataManager.definedChannels();
+  return Channelizer::titles(definedDataChannelizers, delim);
 }
 
-void MasterChannelizerManager::grabDefinedDataChannels(std::vector<DataChannelizer *> &dataChannelizers) {
-  mDataManager.grabDefinedDataChannels(dataChannelizers);
+std::vector<DataChannelizer *> MasterChannelizerManager::definedDataChannels() {
+  return mDataManager.definedDataChannels();
 }
+
 
 void MasterChannelizerManager::markDataChannelsAsBubbleWorthy(AnalyzerResults *analyzerResults) {
   mDataManager.markChannelsAsBubbleWorthy(analyzerResults);

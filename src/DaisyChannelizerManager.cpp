@@ -28,3 +28,15 @@ Clocker *DaisyChannelizerManager::createLoadClocker(Analyzer2 *analyzer) {
 Clocker *DaisyChannelizerManager::createShiftClocker(Analyzer2 *analyzer) {
   return mShiftClockingChannelizer.createClocker(analyzer);
 }
+
+SimulationChannelDescriptor *
+DaisyChannelizerManager::addShiftSimulationChannelDescriptor(SimulationChannelDescriptorGroup &group, U32 sample_rate,
+                                                             BitState intial_bit_state) {
+  return mShiftClockingChannelizer.addSimulationChannelDescriptor(group, sample_rate, intial_bit_state);
+}
+
+SimulationChannelDescriptor *
+DaisyChannelizerManager::addLoadSimulationChannelDescriptor(SimulationChannelDescriptorGroup &group, U32 sample_rate,
+                                                            BitState intial_bit_state) {
+  return mLoadClockingChannelizer.addSimulationChannelDescriptor(group, sample_rate, intial_bit_state);
+}
