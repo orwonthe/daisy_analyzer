@@ -37,8 +37,8 @@ set(SOURCES
         src/DaisySimulationDataGenerator.h
         src/DataChannelizer.cpp
         src/DataChannelizer.h
-        src/DaisyChannelizerManager.cpp
-        src/DaisyChannelizerManager.h
+        src/DataChannelizerManager.cpp
+        src/DataChannelizerManager.h
         src/MasterChannelizerManager.cpp
         src/MasterChannelizerManager.h
         src/SignalGrabber.cpp
